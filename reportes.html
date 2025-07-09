@@ -1,0 +1,58 @@
+     <a href="admnistrativo.html">VOLVER</a>
+     <link rel="stylesheet" href="style.css">
+        
+     
+
+    <h3>📊 Reportes del Negocio</h3>
+    <div class="reporte-grid" id="reporte-estadisticas">
+      <div class="reporte-card" style="border-left-color:#00bcd4;">
+        <h4>Total de Productos</h4>
+        <p id="totalProductos"></p>
+      </div>
+      <div class="reporte-card" style="border-left-color:#e91e63;">
+        <h4>Total de Usuarios</h4>
+        <p id="totalUsuarios"></p>
+      </div>
+     <div class="reporte-card" style="border-left-color:#ff9800;">
+  <h4>Cantidad de Ventas</h4>
+  <p id="cantidadVentas"></p>
+</div>
+<div style="margin-top: 30px;">
+  <button onclick="descargarCSV()" style="padding:10px 20px; font-size:1rem; background-color:#0077ff; color:white; border:none; border-radius:8px; cursor:pointer;">
+    Descargar Reporte CSV 📥
+  </button>
+</div>
+
+    </div>
+    <script>
+ else if (seccion === "reportes") {
+  const db = getFirestore(app);
+  const contenedor = document.getElementById("contenido-dinamico");
+
+const productosRef = collection(db, "productos");
+  onSnapshot(productosRef, (snapshot) => {
+    document.getElementById("totalProductos").textContent = snapshot.size;
+  
+});
+
+  // Escuchar cambios en usuarios
+  const usuariosRef = collection(db, "usuarios");
+  onSnapshot(usuariosRef, (snapshot) => {
+    document.getElementById("totalUsuarios").textContent = snapshot.size;
+  });
+
+  // Escuchar cambios en ventas
+  const ventasRef = collection(db, "ventas");
+  // Escuchar cambios en ventas
+onSnapshot(ventasRef, (snapshot) => {
+  let totalVentas = 0;
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    totalVentas += Number(data.total) || 0;
+  });
+
+  document.getElementById("totalVentas").textContent = `$${totalVentas.toFixed(2)}`;
+  document.getElementById("cantidadVentas").textContent = snapshot.size;
+});
+
+    </script>

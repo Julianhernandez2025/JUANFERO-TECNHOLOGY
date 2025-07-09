@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Área Personal - JUANFERO TECHNOLOGY</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+ 
+</head>
+
+<body>
+
+
+  <header>Área Personal - JUANFERO TECHNOLOGY
+    <a href="area-personal.html"></a>
+  </header>
+
+  <div class="container">
+    <div class="welcome" id="user-name">Bienvenido 👋</div>
+
+    <div class="grid">
+      <div class="card" onclick="cargarSeccion('administrativo')">
+        <i class="fas fa-briefcase"></i>
+        <a href="admnistrativo.html"><div>Administrativo</div></a>
+      </div>
+      <div class="card" onclick="cargarSeccion('ventas')">
+        <i class="fas fa-chart-line"></i>
+        <div>Ventas</div>
+      </div>
+      <div class="card" onclick="cargarSeccion('soporte')">
+        <i class="fas fa-tools"></i>
+        <div>Soporte</div>
+      </div>
+      <div class="card" onclick="cargarSeccion('usuarios')">
+        <i class="fas fa-users"></i>
+        <div>Usuarios</div>
+      </div>
+    </div>
+
+    <div class="logout">
+      <button onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <!-- Firebase y funcionalidades -->
+ 
+</body>
+</html>
+
