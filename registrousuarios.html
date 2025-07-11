@@ -1,90 +1,98 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Registro de Usuario</title>
-  <link rel="stylesheet" href="login.css" />
+  <meta charset="UTF-8">
+  <title>Registro - JUANFERO TECHNOLOGY</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="login-container">
-    <div class="login-box">
-      <h2>Crear Cuenta</h2>
-      <form id="registroForm">
-        <label for="nombre">Nombre completo</label>
-        <input type="text" id="nombre" required />
+  <div class="registro-container">
+    <h2>Crear cuenta</h2>
+    <form id="registroForm">
+      <input type="text" id="nombre" placeholder="Nombre completo" required />
+      <input type="email" id="correo" placeholder="Correo electrónico" required />
+      <input type="password" id="contrasena" placeholder="Contraseña" required />
+      <small style="color: #555; font-size: 13px;">
+        La contraseña debe tener al menos un símbolo especial (por ejemplo: @, #, !, etc.)
+      </small>
 
-        <label for="email">Correo electrónico</label>
-        <input type="email" id="email" required />
+      <h4 style="margin-top: 10px;">Selecciona uno o más roles:</h4>
+      <div id="roles">
+        <label><input type="checkbox" name="rol" value="administrativo" /> Administrativo</label><br />
+        <label><input type="checkbox" name="rol" value="ventas" /> Ventas</label><br />
+        <label><input type="checkbox" name="rol" value="soporte" /> Soporte</label><br />
+        <label><input type="checkbox" name="rol" value="usuario" /> Usuario</label>
+      </div>
 
-        <label for="password">Contraseña</label>
-        <input type="password" id="password" required />
-
-        <label for="rol">Rol</label>
-        <select id="rol" required>
-          <option value="">Selecciona un rol</option>
-          <option value="administrativo">Administrativo</option>
-          <option value="empleado">Empleado</option>
-          <option value="soporte">Soporte</option>
-        </select>
-
-        <button type="submit" class="btn-login">Registrar</button>
-      </form>
-    </div>
+      <button type="submit">Registrar</button>
+    </form>
+    <p id="mensaje"></p>
   </div>
 
-  <!-- Firebase SDKs -->
   <script type="module">
-    // Importar módulos de Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // Configuración Firebase
     const firebaseConfig = {
-      apiKey: "TU_API_KEY",
-      authDomain: "TU_PROYECTO.firebaseapp.com",
-      projectId: "TU_PROYECTO",
-      storageBucket: "TU_PROYECTO.appspot.com",
-      messagingSenderId: "XXXXXXXXX",
-      appId: "TU_APP_ID"
+      apiKey: "AIzaSyAh0fnhTY3cf1pzRRHTuRjQwg-I0A_pEMU",
+      authDomain: "juanfero-tecnology.firebaseapp.com",
+      projectId: "juanfero-tecnology",
     };
 
-    // Inicializar Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Formulario de registro
     const form = document.getElementById("registroForm");
+    const mensaje = document.getElementById("mensaje");
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const nombre = document.getElementById("nombre").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const rol = document.getElementById("rol").value;
+      const nombre = document.getElementById("nombre").value.trim();
+      const correo = document.getElementById("correo").value.trim();
+      const contrasena = document.getElementById("contrasena").value;
+
+      const rolesSeleccionados = Array.from(document.querySelectorAll('input[name="rol"]:checked')).map(cb => cb.value);
+
+      if (rolesSeleccionados.length === 0) {
+        mensaje.textContent = "❌ Debes seleccionar al menos un rol.";
+        mensaje.style.color = "red";
+        return;
+      }
+
+      const regexSimbolo = /[^a-zA-Z0-9]/;
+      if (!regexSimbolo.test(contrasena)) {
+        mensaje.textContent = "❌ La contraseña debe incluir al menos un símbolo especial.";
+        mensaje.style.color = "red";
+        return;
+      }
 
       try {
-        // Crear usuario en Firebase Auth
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const uid = userCredential.user.uid;
+        const cred = await createUserWithEmailAndPassword(auth, correo, contrasena);
+        const uid = cred.user.uid;
 
-        // Guardar datos en Firestore
         await setDoc(doc(db, "usuarios", uid), {
-          nombre,
-          email,
-          rol,
-          creado: new Date()
+          nombre: nombre,
+          rol: rolesSeleccionados
         });
 
-        alert("Usuario registrado con éxito.");
+        mensaje.textContent = "✅ Usuario registrado correctamente.";
+        mensaje.style.color = "green";
         form.reset();
       } catch (error) {
-        console.error("Error al registrar:", error);
-        alert("Error: " + error.message);
+        if (error.code === "auth/email-already-in-use") {
+          mensaje.textContent = "❌ El correo ya está registrado. Inicia sesión.";
+        } else if (error.code === "auth/weak-password") {
+          mensaje.textContent = "❌ Contraseña débil. Agrega símbolos especiales.";
+        } else {
+          mensaje.textContent = "❌ Error: " + error.message;
+        }
+        mensaje.style.color = "red";
       }
     });
   </script>
 </body>
 </html>
+

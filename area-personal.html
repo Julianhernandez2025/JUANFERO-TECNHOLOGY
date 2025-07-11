@@ -4,48 +4,138 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Área Personal - JUANFERO TECHNOLOGY</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&display=swap">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
- 
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-
-
-  <header>Área Personal - JUANFERO TECHNOLOGY
-    <a href="area-personal.html"></a>
+  <header>
+    Área Personal
+    <div class="user-header">
+      <span id="user-info">Hola, usuario 👋</span>
+      <button id="cerrarSesionBtn">🔒 Cerrar sesión</button>
+    </div>
   </header>
 
-  <div class="container">
-    <div class="welcome" id="user-name">Bienvenido 👋</div>
+  <!-- Mensaje temporal -->
+  <div id="mensaje-bienvenida" style="
+    display: none;
+    background-color: #dff0d8;
+    color: #3c763d;
+    padding: 12px 20px;
+    margin: 10px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;">
+  </div>
 
-    <div class="grid">
-      <div class="card" onclick="cargarSeccion('administrativo')">
-        <i class="fas fa-briefcase"></i>
-        <a href="admnistrativo.html"><div>Administrativo</div></a>
-      </div>
-      <div class="card" onclick="cargarSeccion('ventas')">
-        <i class="fas fa-chart-line"></i>
-        <div>Ventas</div>
-      </div>
-      <div class="card" onclick="cargarSeccion('soporte')">
-        <i class="fas fa-tools"></i>
-        <div>Soporte</div>
-      </div>
-      <div class="card" onclick="cargarSeccion('usuarios')">
-        <i class="fas fa-users"></i>
-        <div>Usuarios</div>
+  <div class="container">
+    <!-- Panel de Ventas -->
+    <div class="panel hidden" id="panel-ventas">
+      <h2>💰 Ventas</h2>
+      <p>Accede a herramientas de ventas.</p>
+      <div class="button-group">
+        <button onclick="abrirSeccion('ventas-real')">📈 Ventas en Tiempo Real</button>
+        <button onclick="abrirSeccion('clientes')">👤 Clientes</button>
+        <button onclick="abrirSeccion('facturacion')">🧾 Facturación</button>
       </div>
     </div>
 
-    <div class="logout">
-      <button onclick="cerrarSesion()">Cerrar sesión</button>
+    <!-- Panel de Soporte -->
+    <div class="panel hidden" id="panel-soporte">
+      <h2>🛠 Soporte</h2>
+      <p>Gestiona tickets y ayuda técnica.</p>
+      <div class="button-group">
+        <button onclick="abrirSeccion('tickets')">📬 Ver Tickets</button>
+        <button onclick="abrirSeccion('preguntas')">❓ Preguntas Frecuentes</button>
+      </div>
+    </div>
+
+    <!-- Panel de Usuario -->
+    <div class="panel hidden" id="panel-usuario">
+      <h2>👋 Usuario</h2>
+      <p>Accede a tu información y actividad.</p>
+      <div class="button-group">
+        <button onclick="abrirSeccion('perfil')">👤 Mi Perfil</button>
+        <button onclick="abrirSeccion('historial')">🕓 Historial</button>
+      </div>
     </div>
   </div>
 
-  <!-- Firebase y funcionalidades -->
- 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAh0fnhTY3cf1pzRRHTuRjQwg-I0A_pEMU",
+      authDomain: "juanfero-tecnology.firebaseapp.com",
+      projectId: "juanfero-tecnology",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getFirestore();
+
+    const span = document.getElementById("user-info");
+    const mensajeBienvenida = document.getElementById("mensaje-bienvenida");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "iniciar-sesion.html";
+        return;
+      }
+
+      const userRef = doc(db, "usuarios", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        span.textContent = "👤 Usuario sin datos.";
+        return;
+      }
+
+      const datos = userSnap.data();
+      const nombre = datos.nombre || user.email;
+      const roles = Array.isArray(datos.rol) ? datos.rol : [datos.rol];
+
+      span.textContent = `Hola, ${nombre} 👋`;
+
+      mensajeBienvenida.textContent = `✅ Bienvenido, ${nombre} 👋`;
+      mensajeBienvenida.style.display = "block";
+      setTimeout(() => mensajeBienvenida.style.display = "none", 4000);
+
+      const mapaPaneles = {
+        ventas: "panel-ventas",
+        soporte: "panel-soporte",
+        usuario: "panel-usuario"
+      };
+
+      Object.values(mapaPaneles).forEach(id => {
+        document.getElementById(id)?.classList.add("hidden");
+      });
+
+      roles.forEach(rol => {
+        const idPanel = mapaPaneles[rol];
+        if (idPanel) {
+          document.getElementById(idPanel)?.classList.remove("hidden");
+        }
+      });
+    });
+
+    document.getElementById("cerrarSesionBtn").addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+        window.location.href = "iniciar-sesion.html";
+      } catch (err) {
+        alert("❌ Error al cerrar sesión: " + err.message);
+      }
+    });
+
+    window.abrirSeccion = (seccion) => {
+      alert(`🔔 Abriste la sección: ${seccion}`);
+    };
+  </script>
+
 </body>
 </html>
+
 
