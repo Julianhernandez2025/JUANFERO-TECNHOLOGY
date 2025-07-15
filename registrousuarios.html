@@ -1,32 +1,29 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Registro - JUANFERO TECHNOLOGY</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registro de Usuarios</title>
+  <link rel="stylesheet" href="estilos.css" />
 </head>
 <body>
   <div class="registro-container">
-    <h2>Crear cuenta</h2>
+    <h2>Crear Usuario</h2>
     <form id="registroForm">
       <input type="text" id="nombre" placeholder="Nombre completo" required />
       <input type="email" id="correo" placeholder="Correo electrónico" required />
       <input type="password" id="contrasena" placeholder="Contraseña" required />
-      <small style="color: #555; font-size: 13px;">
-        La contraseña debe tener al menos un símbolo especial (por ejemplo: @, #, !, etc.)
-      </small>
-
-      <h4 style="margin-top: 10px;">Selecciona uno o más roles:</h4>
-      <div id="roles">
-        <label><input type="checkbox" name="rol" value="administrativo" /> Administrativo</label><br />
-        <label><input type="checkbox" name="rol" value="ventas" /> Ventas</label><br />
-        <label><input type="checkbox" name="rol" value="soporte" /> Soporte</label><br />
-        <label><input type="checkbox" name="rol" value="usuario" /> Usuario</label>
-      </div>
-
-      <button type="submit">Registrar</button>
+      <select id="rol" required>
+        <option value="">Selecciona un rol</option>
+        <option value="administrador">Administrador</option>
+        <option value="ventas">Ventas</option>
+        <option value="soporte">Soporte</option>
+        <option value="usuario">Usuario</option>
+      </select>
+      <button type="submit">Registrar</button>     
+      <p id="mensaje"></p>
     </form>
-    <p id="mensaje"></p>
+     <a href="ver-usuarios.html"><button>VER USUARIOS</button></a>
   </div>
 
   <script type="module">
@@ -37,7 +34,7 @@
     const firebaseConfig = {
       apiKey: "AIzaSyAh0fnhTY3cf1pzRRHTuRjQwg-I0A_pEMU",
       authDomain: "juanfero-tecnology.firebaseapp.com",
-      projectId: "juanfero-tecnology",
+      projectId: "juanfero-tecnology"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -49,21 +46,12 @@
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-
-      const nombre = document.getElementById("nombre").value.trim();
-      const correo = document.getElementById("correo").value.trim();
+      const nombre = document.getElementById("nombre").value;
+      const correo = document.getElementById("correo").value;
       const contrasena = document.getElementById("contrasena").value;
+      const rol = document.getElementById("rol").value;
 
-      const rolesSeleccionados = Array.from(document.querySelectorAll('input[name="rol"]:checked')).map(cb => cb.value);
-
-      if (rolesSeleccionados.length === 0) {
-        mensaje.textContent = "❌ Debes seleccionar al menos un rol.";
-        mensaje.style.color = "red";
-        return;
-      }
-
-      const regexSimbolo = /[^a-zA-Z0-9]/;
-      if (!regexSimbolo.test(contrasena)) {
+      if (!/[^a-zA-Z0-9]/.test(contrasena)) {
         mensaje.textContent = "❌ La contraseña debe incluir al menos un símbolo especial.";
         mensaje.style.color = "red";
         return;
@@ -71,28 +59,27 @@
 
       try {
         const cred = await createUserWithEmailAndPassword(auth, correo, contrasena);
-        const uid = cred.user.uid;
-
-        await setDoc(doc(db, "usuarios", uid), {
-          nombre: nombre,
-          rol: rolesSeleccionados
+        await setDoc(doc(db, "usuarios", cred.user.uid), {
+          nombre,
+          correo,
+          rol: [rol] // ✅ importante que sea array
         });
 
         mensaje.textContent = "✅ Usuario registrado correctamente.";
         mensaje.style.color = "green";
         form.reset();
+        // Redirigir a lista
+        setTimeout(() => {
+          window.location.href = "ver-usuarios.html";
+        }, 1000);
       } catch (error) {
-        if (error.code === "auth/email-already-in-use") {
-          mensaje.textContent = "❌ El correo ya está registrado. Inicia sesión.";
-        } else if (error.code === "auth/weak-password") {
-          mensaje.textContent = "❌ Contraseña débil. Agrega símbolos especiales.";
-        } else {
-          mensaje.textContent = "❌ Error: " + error.message;
-        }
+        mensaje.textContent = `❌ Error: ${error.message}`;
         mensaje.style.color = "red";
       }
     });
   </script>
 </body>
 </html>
+
+
 

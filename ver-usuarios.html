@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Usuarios Registrados</title>
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <div class="usuarios-container">
+    <h2>Usuarios Registrados</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Correo</th>
+          <th>Roles</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-usuarios"></tbody>
+    </table>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAh0fnhTY3cf1pzRRHTuRjQwg-I0A_pEMU",
+      authDomain: "juanfero-tecnology.firebaseapp.com",
+      projectId: "juanfero-tecnology"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const tabla = document.getElementById("tabla-usuarios");
+
+    onSnapshot(collection(db, "usuarios"), (snapshot) => {
+      tabla.innerHTML = "";
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${data.nombre}</td>
+          <td>${data.correo}</td>
+          <td>${Array.isArray(data.rol) ? data.rol.join(', ') : data.rol}</td>
+        `;
+        tabla.appendChild(fila);
+      });
+    });
+  </script>
+</body>
+</html>
+
+

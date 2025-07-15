@@ -5,62 +5,61 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Área Personal - JUANFERO TECHNOLOGY</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body>
   <header>
-    Área Personal
+    <span>Área Personal</span>
     <div class="user-header">
       <span id="user-info">Hola, usuario 👋</span>
-      <button id="cerrarSesionBtn">🔒 Cerrar sesión</button>
+      <button id="cerrarSesionBtn">Cerrar sesión</button>
     </div>
   </header>
 
-  <!-- Mensaje temporal -->
-  <div id="mensaje-bienvenida" style="
-    display: none;
-    background-color: #dff0d8;
-    color: #3c763d;
-    padding: 12px 20px;
-    margin: 10px;
-    border-radius: 10px;
-    font-weight: bold;
-    font-size: 16px;
-    text-align: center;">
-  </div>
+  <div id="mensaje-bienvenida" class="bienvenida oculto"></div>
 
   <div class="container">
-    <!-- Panel de Ventas -->
-    <div class="panel hidden" id="panel-ventas">
-      <h2>💰 Ventas</h2>
-      <p>Accede a herramientas de ventas.</p>
-      <div class="button-group">
-        <button onclick="abrirSeccion('ventas-real')">📈 Ventas en Tiempo Real</button>
-        <button onclick="abrirSeccion('clientes')">👤 Clientes</button>
-        <button onclick="abrirSeccion('facturacion')">🧾 Facturación</button>
+    <!-- Panel Administrativo -->
+    <div class="panel oculto" id="panel-administrativo">
+      <h2><i class="fas fa-briefcase"></i> Panel Administrativo</h2>
+      <div class="panel-grid">
+        <div class="card"><i class="fas fa-chart-pie"></i><h4>Reportes</h4></div>
+        <div class="card"><i class="fas fa-boxes"></i><h4>Inventario</h4></div>
+        <div class="card"><i class="fas fa-user-cog"></i><a href="registrousuarios.html"><h4>Empleados</h4></a></div>
+        <div class="card"><i class="fas fa-cogs"></i><h4>Configuraciones</h4></div>
       </div>
     </div>
 
-    <!-- Panel de Soporte -->
-    <div class="panel hidden" id="panel-soporte">
-      <h2>🛠 Soporte</h2>
-      <p>Gestiona tickets y ayuda técnica.</p>
-      <div class="button-group">
-        <button onclick="abrirSeccion('tickets')">📬 Ver Tickets</button>
-        <button onclick="abrirSeccion('preguntas')">❓ Preguntas Frecuentes</button>
+    <!-- Panel Ventas -->
+    <div class="panel oculto" id="panel-ventas">
+      <h2><i class="fas fa-chart-line"></i> Panel de Ventas</h2>
+      <div class="panel-grid">
+        <div class="card"><i class="fas fa-bolt"></i><h4>Ventas en Tiempo Real</h4></div>
+        <div class="card"><i class="fas fa-user"></i><h4>Clientes</h4></div>
+        <div class="card"><i class="fas fa-receipt"></i><h4>Facturación</h4></div>
       </div>
     </div>
 
-    <!-- Panel de Usuario -->
-    <div class="panel hidden" id="panel-usuario">
-      <h2>👋 Usuario</h2>
-      <p>Accede a tu información y actividad.</p>
-      <div class="button-group">
-        <button onclick="abrirSeccion('perfil')">👤 Mi Perfil</button>
-        <button onclick="abrirSeccion('historial')">🕓 Historial</button>
+    <!-- Panel Soporte -->
+    <div class="panel oculto" id="panel-soporte">
+      <h2><i class="fas fa-tools"></i> Panel de Soporte</h2>
+      <div class="panel-grid">
+        <div class="card"><i class="fas fa-envelope-open-text"></i><h4>Ver Tickets</h4></div>
+        <div class="card"><i class="fas fa-question-circle"></i><h4>Preguntas Frecuentes</h4></div>
+      </div>
+    </div>
+
+    <!-- Panel Usuario -->
+    <div class="panel oculto" id="panel-usuario">
+      <h2><i class="fas fa-user"></i> Panel de Usuario</h2>
+      <div class="panel-grid">
+        <div class="card"><i class="fas fa-id-card"></i><h4>Mi Perfil</h4></div>
+        <div class="card"><i class="fas fa-history"></i><h4>Historial</h4></div>
       </div>
     </div>
   </div>
 
+  <!-- Firebase + Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -76,65 +75,42 @@
     const auth = getAuth();
     const db = getFirestore();
 
-    const span = document.getElementById("user-info");
-    const mensajeBienvenida = document.getElementById("mensaje-bienvenida");
+    const userInfo = document.getElementById("user-info");
+    const mensaje = document.getElementById("mensaje-bienvenida");
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "iniciar-sesion.html";
-        return;
-      }
+      if (!user) return window.location.href = "login.html";
 
-      const userRef = doc(db, "usuarios", user.uid);
-      const userSnap = await getDoc(userRef);
+      const ref = doc(db, "usuarios", user.uid);
+      const snap = await getDoc(ref);
 
-      if (!userSnap.exists()) {
-        span.textContent = "👤 Usuario sin datos.";
-        return;
-      }
+      const nombre = snap.exists() ? (snap.data().nombre || user.email) : user.email;
+      const roles = Array.isArray(snap.data()?.rol) ? snap.data().rol : [snap.data()?.rol];
 
-      const datos = userSnap.data();
-      const nombre = datos.nombre || user.email;
-      const roles = Array.isArray(datos.rol) ? datos.rol : [datos.rol];
+      userInfo.textContent = `Hola, ${nombre} 👋`;
+      mensaje.textContent = `✅ Bienvenido, ${nombre} 👋`;
+      mensaje.classList.remove("oculto");
 
-      span.textContent = `Hola, ${nombre} 👋`;
+      setTimeout(() => mensaje.classList.add("oculto"), 4000);
 
-      mensajeBienvenida.textContent = `✅ Bienvenido, ${nombre} 👋`;
-      mensajeBienvenida.style.display = "block";
-      setTimeout(() => mensajeBienvenida.style.display = "none", 4000);
-
-      const mapaPaneles = {
+      const paneles = {
+        administrador: "panel-administrativo",
         ventas: "panel-ventas",
         soporte: "panel-soporte",
         usuario: "panel-usuario"
       };
 
-      Object.values(mapaPaneles).forEach(id => {
-        document.getElementById(id)?.classList.add("hidden");
-      });
-
+      Object.values(paneles).forEach(id => document.getElementById(id)?.classList.add("oculto"));
       roles.forEach(rol => {
-        const idPanel = mapaPaneles[rol];
-        if (idPanel) {
-          document.getElementById(idPanel)?.classList.remove("hidden");
-        }
+        const idPanel = paneles[rol];
+        if (idPanel) document.getElementById(idPanel)?.classList.remove("oculto");
       });
     });
 
-    document.getElementById("cerrarSesionBtn").addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-        window.location.href = "iniciar-sesion.html";
-      } catch (err) {
-        alert("❌ Error al cerrar sesión: " + err.message);
-      }
+    document.getElementById("cerrarSesionBtn").addEventListener("click", () => {
+      signOut(auth).then(() => window.location.href = "login.html");
     });
-
-    window.abrirSeccion = (seccion) => {
-      alert(`🔔 Abriste la sección: ${seccion}`);
-    };
   </script>
-
 </body>
 </html>
 
